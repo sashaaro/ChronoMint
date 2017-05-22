@@ -123,8 +123,8 @@ class OtherContractsDAO extends AbstractMultisigContractDAO {
           [TX_SET_PRICES]: '',
           contract: model.name(),
           address: model.address(),
-          buyPrice: this._c.toWei(model.buyPrice()),
-          sellPrice: this._c.toWei(model.sellPrice())
+          buyPrice: model.buyPrice(),
+          sellPrice: model.sellPrice()
         })
       })
     })
