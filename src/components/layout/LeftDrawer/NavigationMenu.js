@@ -5,6 +5,7 @@ import FontIcon from 'material-ui/FontIcon'
 import { grey800 } from 'material-ui/styles/colors'
 import { IndexLink, Link } from 'react-router'
 import { Translate } from 'react-redux-i18n'
+import { FormattedMessage } from 'react-intl'
 
 const mapStateToProps = (state) => ({
   isCBE: state.get('session').isCBE
@@ -31,7 +32,7 @@ class NavigationMenu extends Component {
         key='dashboard'
         style={styles.menuItem}
         innerDivStyle={styles.menuItemInner}
-        primaryText={<Translate value='nav.dashboard' />}
+        primaryText={<FormattedMessage id='nav.dashboard' />}
         leftIcon={<FontIcon className='material-icons'>assessment</FontIcon>}
         className='left-drawer-menu--item'
         containerElement={<IndexLink activeClassName={'active'} to={{pathname: '/cbe'}} />}

@@ -1,15 +1,21 @@
 import { createStore, applyMiddleware, compose } from 'redux'
 import thunk from 'redux-thunk'
-import { Map } from 'immutable'
+import Immutable from 'immutable'
 import { browserHistory } from 'react-router'
 import { combineReducers } from 'redux-immutable'
 import { syncHistoryWithStore, routerMiddleware } from 'react-router-redux'
-import { loadTranslations, setLocale, i18nReducer } from 'react-redux-i18n'
 import { reducer as formReducer } from 'redux-form/immutable'
 import routingReducer from './routing'
 import * as ducksReducers from './ducks'
-import { SESSION_DESTROY } from './session/actions'
+import { intlReducer } from 'react-intl-redux'
 import LS from '../utils/LocalStorage'
+import i18nMessages from '../i18n'
+import { flattenMessages } from '../utils/helper'
+import en from 'react-intl/locale-data/en';
+import ru from 'react-intl/locale-data/ru';
+import {addLocaleData} from 'react-intl';
+
+addLocaleData([...en, ...ru])
 
 const getNestedReducers = (ducks) => {
   let reducers = {}
@@ -32,24 +38,27 @@ const createSelectLocationState = () => {
   }
 }
 
+const defaultLocale = 'en'
+let locale = LS.getLocale() || defaultLocale
+
 const configureStore = () => {
-  const initialState = new Map()
+  if (!i18nMessages[locale]) {
+    locale = defaultLocale
+  }
+  const initialState = Immutable.fromJS({
+    intl: {
+      defaultLocale: defaultLocale,
+      locale: locale,
+      messages: flattenMessages(i18nMessages[locale])
+    }
+  })
 
   const appReducer = combineReducers({
     form: formReducer,
-    i18n: i18nReducer,
     routing: routingReducer,
+    intl: intlReducer,
     ...getNestedReducers(ducksReducers)
   })
-
-  const rootReducer = (state, action) => {
-    if (action.type === SESSION_DESTROY) {
-      const i18nState = state.get('i18n')
-      state = new Map()
-      state = state.set('i18n', i18nState)
-    }
-    return appReducer(state, action)
-  }
 
   const createStoreWithMiddleware = compose(
     applyMiddleware(
@@ -62,7 +71,7 @@ const configureStore = () => {
   )(createStore)
 
   return createStoreWithMiddleware(
-    rootReducer,
+    appReducer,
     initialState
   )
 }
@@ -72,25 +81,5 @@ const store = configureStore()
 const history = syncHistoryWithStore(browserHistory, store, {
   selectLocationState: createSelectLocationState()
 })
-
-/** i18n START >>> */
-const _reactI18nify = require('react-i18nify')
-_reactI18nify.I18n.setTranslationsGetter(() => {
-  try {
-    return store.getState().get('i18n').translations
-  } catch (e) {
-    console.error('Error getting translations from store!')
-  }
-})
-_reactI18nify.I18n.setLocaleGetter(() => {
-  try {
-    return store.getState().get('i18n').locale
-  } catch (e) {
-    console.error('Error getting locale from store!')
-  }
-})
-store.dispatch(setLocale(LS.getLocale() || 'en'))
-store.dispatch(loadTranslations(require('../i18n/')))
-/** <<< i18n END */
 
 export { store, history }

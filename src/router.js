@@ -27,6 +27,7 @@ import { updateTIMEDeposit, updateTIMEBalance } from './redux/wallet/actions'
 import { showAlertModal } from './redux/ui/modal'
 import { login } from './redux/session/actions'
 import LS from './utils/LocalStorage'
+import {IntlProvider} from 'react-intl-redux'
 
 const requireAuth = (nextState, replace) => {
   const isCBE = /^\/cbe/.test(nextState.location.pathname)
@@ -58,32 +59,36 @@ const requireDepositTIME = (nextState) => {
   })
 }
 
+const intlSelector = state => state.get('intl').toJS ? state.get('intl').toJS() : state.get('intl')
+
 const router = (
   <Provider store={store}>
-    <Router history={history}>
-      <Redirect from='/' to='wallet' />
-      <Route path='/' component={App} onEnter={requireAuth}>
-        <Route path='cbe'>
-          <IndexRoute component={DashboardPage} />
-          <Route path='locs' component={LOCsPage} />
-          <Route path='lh_story' component={LHStoryPage} />
-          <Route path='operations' component={OperationsPage} />
-          <Route path='settings' component={SettingsPage} />
+    <IntlProvider intlSelector={intlSelector}>
+      <Router history={history}>
+        <Redirect from='/' to='wallet' />
+        <Route path='/' component={App} onEnter={requireAuth}>
+          <Route path='cbe'>
+            <IndexRoute component={DashboardPage} />
+            <Route path='locs' component={LOCsPage} />
+            <Route path='lh_story' component={LHStoryPage} />
+            <Route path='operations' component={OperationsPage} />
+            <Route path='settings' component={SettingsPage} />
+          </Route>
+          <Route path='notices' component={NoticesPage} />
+          <Route path='profile' component={ProfilePage} onEnter={requireDepositTIME} />
+          <Route path='voting' component={VotingPage} onEnter={requireDepositTIME} />
+          <Route path='rewards' component={RewardsPage} onEnter={requireDepositTIME} />
+          <Route path='wallet'>
+            <IndexRoute component={WalletPage} />
+            <Route path='exchange' component={ExchangePage} />
+          </Route>
         </Route>
-        <Route path='notices' component={NoticesPage} />
-        <Route path='profile' component={ProfilePage} onEnter={requireDepositTIME} />
-        <Route path='voting' component={VotingPage} onEnter={requireDepositTIME} />
-        <Route path='rewards' component={RewardsPage} onEnter={requireDepositTIME} />
-        <Route path='wallet'>
-          <IndexRoute component={WalletPage} />
-          <Route path='exchange' component={ExchangePage} />
+        <Route component={Auth}>
+          <Route path='login' component={Login} />
         </Route>
-      </Route>
-      <Route component={Auth}>
-        <Route path='login' component={Login} />
-      </Route>
-      <Route path='*' component={NotFoundPage} />
-    </Router>
+        <Route path='*' component={NotFoundPage} />
+      </Router>
+    </IntlProvider>
   </Provider>
 )
 

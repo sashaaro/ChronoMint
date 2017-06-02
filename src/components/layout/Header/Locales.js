@@ -1,17 +1,22 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { DropDownMenu, MenuItem } from 'material-ui'
-import { setLocale } from 'react-redux-i18n'
 import LS from '../../../utils/LocalStorage'
+import i18nMessages from '../../../i18n'
+import { updateIntl } from 'react-intl-redux'
+import { flattenMessages } from '../../../utils/helper'
 
 const mapStateToProps = (state) => ({
-  locale: state.get('i18n').locale
+  locale: state.get('intl').locale
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch, state) => ({
   change: (locale) => {
+    if (!i18nMessages[locale]) {
+      locale = state.get('intl').defaultLocale
+    }
     LS.setLocale(locale)
-    dispatch(setLocale(locale))
+    dispatch(updateIntl(locale, flattenMessages(i18nMessages[locale])))
   }
 })
 
