@@ -16,7 +16,8 @@ const mapDispatchToProps = (dispatch, state) => ({
       locale = state.get('intl').defaultLocale
     }
     LS.setLocale(locale)
-    dispatch(updateIntl(locale, flattenMessages(i18nMessages[locale])))
+    const messages = flattenMessages(i18nMessages[locale])
+    dispatch(updateIntl({locale, messages}))
   }
 })
 
