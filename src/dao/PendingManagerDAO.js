@@ -65,8 +65,9 @@ export default class PendingManagerDAO extends AbstractContractDAO {
 
   getCompletedList (fromBlock, toBlock) {
     let map = new Map()
-    return new Promise(resolve => {
-      this.contract.then(deployed => {
+    return new Promise(async (resolve) => {
+      const eventsDAO = await DAORegistry.getEmitterDAO()
+      eventsDAO.contract.then(deployed => {
         deployed['Done']({}, {fromBlock, toBlock}).get((e, r) => {
           if (e || !r.length) {
             return resolve(map)
@@ -109,40 +110,42 @@ export default class PendingManagerDAO extends AbstractContractDAO {
    * @see OperationNoticeModel and isOld flag
    * @param isRevoked
    */
-  _watchPendingCallback = (callback, isRevoked: boolean = false) => (result, block, time, isOld) => {
-    this._call('txs', [result.args.hash], block)
-      .then(async ([to, hash, data, remained, done, timestamp]) => {
-        if (data === '0x' && !isRevoked) { // prevent notice when operation is already completed
-          return
-        }
-        const tx = data === '0x' ? null : await this._parseData(data)
-        const operation = new OperationModel({
-          id: PENDING_ID_PREFIX + hash,
-          tx: tx ? tx.set('time', timestamp * 1000) : null,
-          remained: remained.toNumber(),
-          isConfirmed: this._isConfirmed(done)
-        })
-        if (operation.isCompleted() && !isRevoked) {
-          return
-        }
-        callback(new OperationNoticeModel({
-          operation,
-          isRevoked,
-          time
-        }), isOld)
-      })
+  _watchPendingCallback = (callback, isRevoked: boolean = false) => async (result, block, time, isOld) => {
+    // noinspection JSUnusedLocalSymbols
+    const [to, hash, data, remained, done, timestamp] = await this._call('txs', [result.args.hash], block - 1)
+    if (data === '0x') { // prevent notice when operation is already completed
+      return
+    }
+    const tx = await this._parseData(data)
+    const operation = new OperationModel({
+      id: PENDING_ID_PREFIX + hash,
+      tx: tx ? tx.set('time', timestamp * 1000) : null,
+      remained: remained.toNumber(),
+      isConfirmed: this._isConfirmed(done)
+    })
+    if (operation.isCompleted() && !isRevoked) {
+      return
+    }
+    callback(new OperationNoticeModel({
+      operation,
+      isRevoked,
+      time
+    }), isOld)
   }
 
-  watchConfirmation (callback) {
-    return this.watch('Confirmation', this._watchPendingCallback(callback))
+  async watchConfirmation (callback) {
+    const eventsDAO = await DAORegistry.getEmitterDAO()
+    return eventsDAO.watch('Confirmation', this._watchPendingCallback(callback))
   }
 
-  watchRevoke (callback) {
-    return this.watch('Revoke', this._watchPendingCallback(callback, true))
+  async watchRevoke (callback) {
+    const eventsDAO = await DAORegistry.getEmitterDAO()
+    return eventsDAO.watch('Revoke', this._watchPendingCallback(callback, true))
   }
 
-  watchDone (callback) {
-    return this.watch('Done', (r, block, time, isOld) => {
+  async watchDone (callback) {
+    const eventsDAO = await DAORegistry.getEmitterDAO()
+    return eventsDAO.watch('Done', (r, block, time, isOld) => {
       if (isOld) {
         return
       }
@@ -156,8 +159,9 @@ export default class PendingManagerDAO extends AbstractContractDAO {
     }, false)
   }
 
-  watchError (callback) {
-    return this.watch('Error', (r, block, time, isOld) => {
+  async watchError (callback) {
+    const eventsDAO = await DAORegistry.getEmitterDAO()
+    return eventsDAO.watch('Error', (r, block, time, isOld) => {
       if (isOld) {
         return
       }

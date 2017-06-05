@@ -86,7 +86,6 @@ class DAORegistry {
       if (this.contracts[dao].hasOwnProperty(key)) {
         return resolve(this.contracts[dao][key])
       }
-      console.log('Initialization of DAO ' + dao + ' ' + key)
       const DAOClass = this.getDAOs()[dao]
       this.contracts[dao][key] = new DAOClass(address)
       this.contracts[dao][key].setDefaultBlock(block)
@@ -116,6 +115,12 @@ class DAORegistry {
       await managerDAO.initTokenMetaData(dao)
     }
     return dao
+  }
+
+  async getERC20DAOBySymbol (symbol: string) {
+    const managerDAO = await this.getERC20ManagerDAO()
+    const address = await managerDAO.getTokenAddressBySymbol(symbol)
+    return this.getERC20DAO(address)
   }
 
   /** @returns {Promise.<RewardsDAO|bool>} */
