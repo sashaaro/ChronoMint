@@ -1,9 +1,9 @@
 import React from 'react'
-import { abstractModel } from './AbstractModel'
+import { abstractFetchingModel } from './AbstractFetchingModel'
 import validator from '../components/forms/validator'
 import ErrorList from '../components/forms/ErrorList'
 
-export default class ContractModel extends abstractModel({
+export default class ContractModel extends abstractFetchingModel({
   name: '',
   address: null,
 }) {

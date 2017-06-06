@@ -3,43 +3,42 @@ import ContractsManagerDAO from '../../../dao/ContractsManagerDAO'
 import AbstractContractDAO from '../../../dao/AbstractContractDAO'
 import ContractModel from '../../../models/ContractModel'
 
-export const CONTRACTS_LIST = 'settings/CONTRACTS_LIST'
-export const CLEAN_CONTRACTS_LIST = 'settings/CLEAN_CONTRACTS_LIST'
-export const SET_SELECTED = 'settings/SET_SELECTED'
-export const UPDATE_SELECTED = 'settings/UPDATE_SELECTED'
-export const REMOVE_SELECTED = 'settings/REMOVE_SELECTED'
+export const CONTRACTS_MANAGER_FETCH_LIST = 'settings/CONTRACTS_MANAGER_FETCH_LIST'
+export const CONTRACTS_MANAGER_UPDATE_CONTRACT = 'settings/CONTRACTS_MANAGER_UPDATE_CONTRACT'
+export const CONTRACTS_MANAGER_SET_SELECTED = 'settings/CONTRACTS_MANAGER_SET_SELECTED'
+export const CONTRACTS_MANAGER_UPDATE_SELECTED = 'settings/CONTRACTS_MANAGER_UPDATE_SELECTED'
+export const CONTRACTS_MANAGER_REMOVE_SELECTED = 'settings/CONTRACTS_MANAGER_REMOVE_SELECTED'
 
 const initialState = {
-  list: [],
+  list: new Immutable.Map(),
   isFetched: false,
   selected: null
 }
 
 export default (state = initialState, action) => {
   switch (action.type) {
-    case CONTRACTS_LIST:
+    case CONTRACTS_MANAGER_FETCH_LIST:
       return {
         ...state,
         list: action.list,
         isFetched: true
       }
-    case CLEAN_CONTRACTS_LIST:
+    case CONTRACTS_MANAGER_UPDATE_CONTRACT:
       return {
         ...state,
-        list: [],
-        isFetched: true
+        list: state.list.set(action.contract.get('name'), action.contract),
       }
-    case SET_SELECTED:
-      return {
-        ...state,
-        selected: action.selected,
-      }
-    case UPDATE_SELECTED:
+    case CONTRACTS_MANAGER_SET_SELECTED:
       return {
         ...state,
         selected: action.selected,
       }
-    case REMOVE_SELECTED:
+    case CONTRACTS_MANAGER_UPDATE_SELECTED:
+      return {
+        ...state,
+        selected: action.selected,
+      }
+    case CONTRACTS_MANAGER_REMOVE_SELECTED:
       return {
         ...state,
         selected: null,
@@ -49,32 +48,48 @@ export default (state = initialState, action) => {
   }
 }
 
-export const listContract = () => async (dispatch) => {
+export const fetchContractsList = () => async (dispatch) => {
   const contracts = await ContractsManagerDAO.getDAOContracts()
-  dispatch({type: CONTRACTS_LIST, list: contracts.map((contract: AbstractContractDAO) => new ContractModel({
-    name: contract.getContractName(),
-    address: contract.getInitAddress()
-  }))})
+  let map = {}
+  contracts.map((contract: AbstractContractDAO) => {
+    map[contract.getContractName()] = new ContractModel({
+      name: contract.getContractName(),
+      address: contract.getInitAddress()
+    })
+  })
+
+  const list = new Immutable.Map(map)
+
+  dispatch({type: CONTRACTS_MANAGER_FETCH_LIST, list})
 }
 
-export const cleanContractList = () => (dispatch) => {
-  dispatch({type: CLEAN_CONTRACTS_LIST})
-}
-
-export const setSelected = (selected: AbstractContractDAO) => (dispatch) => {
-  dispatch({type: SET_SELECTED, selected})
+export const setSelected = (selected: ContractModel) => (dispatch) => {
+  dispatch({type: CONTRACTS_MANAGER_SET_SELECTED, selected})
 }
 export const removeSelected = () => (dispatch) => {
-  dispatch({type: REMOVE_SELECTED})
+  dispatch({type: CONTRACTS_MANAGER_REMOVE_SELECTED})
 }
 
-export const updateSelected = (selected) => (dispatch) => {
-  // TODO update selected
-  dispatch({type: UPDATE_SELECTED, selected})
-
-  dispatch(cleanContractList())
-  dispatch(listContract())
+export const updateSelected = (selected: ContractModel, newAddress) => async (dispatch) => {
+  const prevAddress = selected.get('address')
+  selected.set('address', newAddress)
+  dispatch({type: CONTRACTS_MANAGER_UPDATE_CONTRACT, contract: selected.fetching()})
   dispatch(removeSelected())
+
+  try {
+    await ContractsManagerDAO.createDAOByContractName(selected.get('name'), newAddress, true)
+  } catch (e) {
+    console.log(e)
+    throw new Error(e)
+  }
+  try {
+    await ContractsManagerDAO.setContractAddress(prevAddress, selected.get('address'))
+    dispatch({type: CONTRACTS_MANAGER_UPDATE_CONTRACT, contract: selected.notFetching()})
+  } catch (e) {
+    console.log(e)
+    selected.set('address', prevAddress)
+    dispatch({type: CONTRACTS_MANAGER_UPDATE_CONTRACT, contract: selected.notFetching()})
+  }
 }
 
 

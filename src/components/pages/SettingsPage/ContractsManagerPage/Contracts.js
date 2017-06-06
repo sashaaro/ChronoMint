@@ -5,7 +5,7 @@ import { Dialog, FlatButton, RaisedButton, Paper, Divider, CircularProgress } fr
 import { Translate } from 'react-redux-i18n'
 import globalStyles from '../../../../styles'
 import styles from '../styles'
-import { listContract, setSelected, updateSelected, removeSelected } from '../../../../redux/settings/contractsManager/contracts'
+import { fetchContractsList, setSelected, updateSelected, removeSelected } from '../../../../redux/settings/contractsManager/contracts'
 import ContractModel from '../../../../models/ContractModel'
 import ContractForm from './ContractForm'
 
@@ -19,10 +19,10 @@ const mapStateToProps = (state) => {
 }
 
 const mapDispatchToProps = (dispatch) => ({
-  getList: () => dispatch(listContract()),
+  getList: () => dispatch(fetchContractsList()),
   setSelected: (contract) => dispatch(setSelected(contract)),
   removeSelected: () => dispatch(removeSelected()),
-  updateSelected: (contract: ContractModel) => dispatch(updateSelected(contract)),
+  updateSelected: (contract: ContractModel, newAddress) => dispatch(updateSelected(contract, newAddress))
 })
 
 @connect(mapStateToProps, mapDispatchToProps)
@@ -38,7 +38,7 @@ export default class Contacts extends Component {
   }
 
   handleSubmitForm(values: ContractModel) {
-    this.props.updateSelected(values)
+    this.props.updateSelected(this.props.selected, values.get('address'))
   }
 
   render () {
@@ -67,7 +67,7 @@ export default class Contacts extends Component {
     if (selected) {
       dialogModal =
         <Dialog
-          title='Modify CBE address'
+          title='Modify Contracts manager'
           actions={[
             <FlatButton
               label='Cancel'

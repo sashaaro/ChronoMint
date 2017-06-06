@@ -6,7 +6,7 @@ import { validate } from '../../../../models/ContractModel'
 import { Translate } from 'react-redux-i18n'
 
 const mapStateToProps = (state) => ({
-  initialValues: state.get('settingsContracts').selected
+  initialValues: state.get('settingsContracts').selected.set('address', '')
 })
 
 @connect(mapStateToProps, null, null, {withRef: true})
