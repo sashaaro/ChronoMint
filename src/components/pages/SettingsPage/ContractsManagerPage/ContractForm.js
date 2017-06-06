@@ -10,7 +10,9 @@ const mapStateToProps = (state) => ({
 })
 
 @connect(mapStateToProps, null, null, {withRef: true})
-@reduxForm({form: 'SettingsContractForm', validate})
+@reduxForm({form: 'SettingsContractForm', validate, asyncValidate: () => {
+  // todo
+}})
 class ContractForm extends Component {
   render () {
     return (

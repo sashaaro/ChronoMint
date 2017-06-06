@@ -82,12 +82,16 @@ export default class AbstractContractDAO {
   isDeployed (checkCodeConsistency = true): Promise<bool> {
     return new Promise(async (resolve) => {
       const web3 = web3Provider.getWeb3instance()
-      await this._initContract(web3, true)
+      try {
+        await this._initContract(web3, true)
+      } catch (e) {
+        resolve(false)
+      }
       web3.eth.getCode(this.getInitAddress(), (e, resolvedCode) => {
         resolve(
           checkCodeConsistency ?
             resolvedCode === this._json.unlinked_binary :
-            !/^0x[0]?$/.test(resolvedCode)
+            !/^0x[0]?$/.test(resolvedCode) // not empty
         )
       })
     })
