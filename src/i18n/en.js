@@ -95,6 +95,9 @@ export default {
         decimals: 'Decimals',
         icon: 'Icon'
       }
+    },
+    contracts: {
+      title: 'Contracts manager'
     }
   },
   notices: {

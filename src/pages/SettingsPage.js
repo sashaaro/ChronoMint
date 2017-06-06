@@ -22,6 +22,11 @@ class SettingsPage extends Component {
           </Link>
         </Paper>
 
+        <Paper style={styles.paper}>
+          <Link activeClassName={'active'} to={{pathname: '/cbe/settings/contracts'}}>
+            <h3 style={styles.title}><Translate value='settings.contracts.title' /></h3>
+          </Link>
+        </Paper>
       </div>
     )
   }

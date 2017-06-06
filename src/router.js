@@ -21,6 +21,7 @@ import RewardsPage from './pages/RewardsPage'
 import SettingsPage from './pages/SettingsPage'
 import UserManagerPage from './pages/SettingsPage/UserManagerPage'
 import ERC20ManagerPage from './pages/SettingsPage/ERC20ManagerPage'
+import ContractsManagerPage from './pages/SettingsPage/ContractsManagerPage'
 
 import NoticesPage from './pages/NoticesPage'
 import ProfilePage from './pages/ProfilePage'
@@ -73,6 +74,7 @@ const router = (
             <IndexRoute component={SettingsPage}/>
             <Route path='user' component={UserManagerPage}/>
             <Route path='erc20' component={ERC20ManagerPage}/>
+            <Route path='contracts' component={ContractsManagerPage}/>
           </Route>
         </Route>
         <Route path='notices' component={NoticesPage}/>

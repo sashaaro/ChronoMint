@@ -145,6 +145,23 @@ class ContractsManagerDAO extends AbstractContractDAO {
     const address = await EventsHistoryDAO.getAddress()
     return this._getDAO(DAO_PLATFORM_EMITTER, address)
   }
+
+  getDAOContracts(): Promise<Array<AbstractContractDAO>> {
+    return Promise.all([
+      this.getERC20ManagerDAO(),
+      this.getAssetsManagerDAO(),
+      this.getRewardsDAO(),
+      this.getExchangeDAO(),
+      this.getTIMEHolderDAO(),
+      this.getTIMEDAO(),
+      this.getPendingManagerDAO(),
+      this.getUserManagerDAO(),
+      this.getLOCManagerDAO(),
+      this.getVoteDAO(),
+      this.getEmitterDAO(),
+      this.getPlatformEmitterDAO()
+    ])
+  }
 }
 
 export default new ContractsManagerDAO(require('chronobank-smart-contracts/build/contracts/ContractsManager.json'))
