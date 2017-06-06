@@ -4,8 +4,10 @@ import AbstractContractDAO from '../../../dao/AbstractContractDAO'
 import ContractModel from '../../../models/ContractModel'
 
 export const CONTRACTS_LIST = 'settings/CONTRACTS_LIST'
-export const MODIFY_TOGGLE = 'settings/MODIFY_TOGGLE'
-export const REMOVE_TOGGLE = 'settings/REMOVE_TOGGLE'
+export const CLEAN_CONTRACTS_LIST = 'settings/CLEAN_CONTRACTS_LIST'
+export const SET_SELECTED = 'settings/SET_SELECTED'
+export const UPDATE_SELECTED = 'settings/UPDATE_SELECTED'
+export const REMOVE_SELECTED = 'settings/REMOVE_SELECTED'
 
 const initialState = {
   list: [],
@@ -21,12 +23,23 @@ export default (state = initialState, action) => {
         list: action.list,
         isFetched: true
       }
-    case MODIFY_TOGGLE:
+    case CLEAN_CONTRACTS_LIST:
       return {
         ...state,
-        selected: action.contract,
+        list: [],
+        isFetched: true
       }
-    case REMOVE_TOGGLE:
+    case SET_SELECTED:
+      return {
+        ...state,
+        selected: action.selected,
+      }
+    case UPDATE_SELECTED:
+      return {
+        ...state,
+        selected: action.selected,
+      }
+    case REMOVE_SELECTED:
       return {
         ...state,
         selected: null,
@@ -44,11 +57,24 @@ export const listContract = () => async (dispatch) => {
   }))})
 }
 
-export const modifyToggle = (contract: AbstractContractDAO) => (dispatch) => {
-  dispatch({type: MODIFY_TOGGLE, contract})
+export const cleanContractList = () => (dispatch) => {
+  dispatch({type: CLEAN_CONTRACTS_LIST})
 }
-export const removeToggle = () => (dispatch) => {
-  dispatch({type: REMOVE_TOGGLE})
+
+export const setSelected = (selected: AbstractContractDAO) => (dispatch) => {
+  dispatch({type: SET_SELECTED, selected})
+}
+export const removeSelected = () => (dispatch) => {
+  dispatch({type: REMOVE_SELECTED})
+}
+
+export const updateSelected = (selected) => (dispatch) => {
+  // TODO update selected
+  dispatch({type: UPDATE_SELECTED, selected})
+
+  dispatch(cleanContractList())
+  dispatch(listContract())
+  dispatch(removeSelected())
 }
 
 

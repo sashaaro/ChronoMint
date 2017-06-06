@@ -5,8 +5,7 @@ import { Dialog, FlatButton, RaisedButton, Paper, Divider, CircularProgress } fr
 import { Translate } from 'react-redux-i18n'
 import globalStyles from '../../../../styles'
 import styles from '../styles'
-import { listContract, modifyToggle, removeToggle } from '../../../../redux/settings/contractsManager/contracts'
-import AbstractContractDAO from '../../../../dao/AbstractContractDAO'
+import { listContract, setSelected, updateSelected, removeSelected } from '../../../../redux/settings/contractsManager/contracts'
 import ContractModel from '../../../../models/ContractModel'
 import ContractForm from './ContractForm'
 
@@ -21,8 +20,9 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => ({
   getList: () => dispatch(listContract()),
-  modifyToggle: (contract) => dispatch(modifyToggle(contract)),
-  removeToggle: () => dispatch(removeToggle()),
+  setSelected: (contract) => dispatch(setSelected(contract)),
+  removeSelected: () => dispatch(removeSelected()),
+  updateSelected: (contract: ContractModel) => dispatch(updateSelected(contract)),
 })
 
 @connect(mapStateToProps, mapDispatchToProps)
@@ -31,6 +31,14 @@ export default class Contacts extends Component {
     if (!this.props.isFetched) {
       this.props.getList()
     }
+  }
+
+  handleSubmitClick() {
+    this.refs.SettingsContractForm.getWrappedInstance().submit()
+  }
+
+  handleSubmitForm(values: ContractModel) {
+    this.props.updateSelected(values)
   }
 
   render () {
@@ -49,7 +57,7 @@ export default class Contacts extends Component {
           <TableRowColumn style={styles.columns.name}>{contract.get('name')}</TableRowColumn>
           <TableRowColumn style={styles.columns.address}>{contract.get('address')}</TableRowColumn>
           <TableRowColumn style={styles.columns.action}>
-            <RaisedButton label='Modify' style={styles.actionButton} onTouchTap={this.props.modifyToggle.bind(null, contract)}/>
+            <RaisedButton label='Modify' style={styles.actionButton} onTouchTap={this.props.setSelected.bind(null, contract)}/>
           </TableRowColumn>
         </TableRow>
       )
@@ -64,21 +72,22 @@ export default class Contacts extends Component {
             <FlatButton
               label='Cancel'
               primary
-              onTouchTap={this.props.removeToggle.bind(null)}
+              onTouchTap={this.props.removeSelected.bind(null)}
             />,
             <FlatButton
               label='Modify'
               primary
               keyboardFocused
+              onTouchTap={this.handleSubmitClick.bind(this)}
             />
           ]}
           modal={false}
           open={true}
-          onRequestClose={this.props.removeToggle.bind(null, null)}
+          onRequestClose={this.props.removeSelected.bind(null, null)}
         >
           Do you really want to modify "{this.props.selected.get('name')}" contract
           with address "{this.props.selected.get('address')}"?
-          <ContractForm/>
+          <ContractForm ref='SettingsContractForm' onSubmit={this.handleSubmitForm.bind(this)}/>
         </Dialog>
     }
 
