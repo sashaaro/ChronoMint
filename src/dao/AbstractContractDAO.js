@@ -79,25 +79,45 @@ export default class AbstractContractDAO {
     }
   }
 
-  isDeployed (checkCodeConsistency = true): Promise<bool> {
+  isDeployed (): Promise<bool> {
     return new Promise(async (resolve) => {
       const web3 = web3Provider.getWeb3instance()
       try {
         await this._initContract(web3, true)
       } catch (e) {
-        resolve(false)
+        return resolve(false)
       }
       web3.eth.getCode(this.getInitAddress(), (e, resolvedCode) => {
         if (e) {
-          resolve(false)
+          return resolve(false)
         }
-        resolve(
-          checkCodeConsistency ?
-            resolvedCode === this._json.unlinked_binary :
-            !/^0x[0]?$/.test(resolvedCode) // not empty
-        )
+
+        resolve(!/^0x[0]?$/.test(resolvedCode))
       })
     })
+  }
+
+  /**
+   * Check code consistency
+   * @param address
+   * @return {Promise}
+   */
+  isSameContractCode(address: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      if (address === this.getInitAddress()) {
+        return resolve(true)
+      }
+      const web3 = web3Provider.getWeb3instance()
+      web3.eth.getCode(this.getInitAddress(), (e, code) => {
+        if (e) {
+          return resolve(false)
+        }
+        web3.eth.getCode(address, (e, resolvedCode) => {
+          return !e && resolve(code === resolvedCode)
+        })
+      })
+    })
+
   }
 
   async getAddress () {

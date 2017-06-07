@@ -77,19 +77,6 @@ class ContractsManagerDAO extends AbstractContractDAO {
     return dao
   }
 
-  _getDAOTypeByContractName(contractName: string): number {
-    const daoType = Object.keys(daoMap).find(key => daoMap[key] === contractName)
-    if (!daoType) {
-      throw new Error(`DAO type with ${contractName} is not exist`)
-    }
-
-    return daoType
-  }
-
-  async createDAOByContractName(contractName: string, address: string): AbstractContractDAO {
-    return await this._getDAO(this._getDAOTypeByContractName(contractName), address, true)
-  }
-
   async getERC20ManagerDAO (): Promise<ERC20ManagerDAO> {
     return this._getDAO(DAO_ERC20_MANAGER)
   }
@@ -177,7 +164,7 @@ class ContractsManagerDAO extends AbstractContractDAO {
     ])
   }
 
-  setContractAddress(address, newAddress) {
+  setContractAddress(address, newAddress): Promise<any> {
     return this._call('setContractAddress', [address, newAddress])
   }
 }

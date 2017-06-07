@@ -6,6 +6,7 @@ import ErrorList from '../components/forms/ErrorList'
 export default class ContractModel extends abstractFetchingModel({
   name: '',
   address: null,
+  dao: null
 }) {
 
 }
@@ -13,7 +14,6 @@ export default class ContractModel extends abstractFetchingModel({
 export const validate = values => {
   const errors = {}
   errors.address = ErrorList.toTranslate(validator.address(values.get('address')))
-  errors.name = ErrorList.toTranslate(validator.name(values.get('name')))
   return errors
 }
 

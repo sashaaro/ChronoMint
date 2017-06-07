@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { submit } from 'redux-form'
 import { Table, TableBody, TableHeader, TableHeaderColumn, TableRow, TableRowColumn } from 'material-ui/Table'
 import { Dialog, FlatButton, RaisedButton, Paper, Divider, CircularProgress } from 'material-ui'
 import { Translate } from 'react-redux-i18n'
@@ -7,7 +8,7 @@ import globalStyles from '../../../../styles'
 import styles from '../styles'
 import { fetchContractsList, setSelected, updateSelected, removeSelected } from '../../../../redux/settings/contractsManager/contracts'
 import ContractModel from '../../../../models/ContractModel'
-import ContractForm from './ContractForm'
+import ContractForm, {FORM_SETTINGS_CONTRACT} from './ContractForm'
 
 const mapStateToProps = (state) => {
   state = state.get('settingsContracts')
@@ -20,6 +21,7 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => ({
   getList: () => dispatch(fetchContractsList()),
+  handleSubmitClick: () => dispatch(submit(FORM_SETTINGS_CONTRACT)),
   setSelected: (contract) => dispatch(setSelected(contract)),
   removeSelected: () => dispatch(removeSelected()),
   updateSelected: (contract: ContractModel, newAddress) => dispatch(updateSelected(contract, newAddress))
@@ -31,10 +33,6 @@ export default class Contacts extends Component {
     if (!this.props.isFetched) {
       this.props.getList()
     }
-  }
-
-  handleSubmitClick() {
-    this.refs.SettingsContractForm.getWrappedInstance().submit()
   }
 
   handleSubmitForm(values: ContractModel) {
@@ -57,7 +55,9 @@ export default class Contacts extends Component {
           <TableRowColumn style={styles.columns.name}>{contract.get('name')}</TableRowColumn>
           <TableRowColumn style={styles.columns.address}>{contract.get('address')}</TableRowColumn>
           <TableRowColumn style={styles.columns.action}>
-            <RaisedButton label='Modify' style={styles.actionButton} onTouchTap={this.props.setSelected.bind(null, contract)}/>
+            {contract.isFetching()
+              ? <CircularProgress size={24} thickness={1.5} style={{float: 'right'}} />
+              : <RaisedButton label='Modify' style={styles.actionButton} onTouchTap={this.props.setSelected.bind(null, contract)}/>}
           </TableRowColumn>
         </TableRow>
       )
@@ -78,7 +78,7 @@ export default class Contacts extends Component {
               label='Modify'
               primary
               keyboardFocused
-              onTouchTap={this.handleSubmitClick.bind(this)}
+              onTouchTap={this.props.handleSubmitClick}
             />
           ]}
           modal={false}
@@ -87,7 +87,7 @@ export default class Contacts extends Component {
         >
           Do you really want to modify "{this.props.selected.get('name')}" contract
           with address "{this.props.selected.get('address')}"?
-          <ContractForm ref='SettingsContractForm' onSubmit={this.handleSubmitForm.bind(this)}/>
+          <ContractForm onSubmit={this.handleSubmitForm.bind(this)}/>
         </Dialog>
     }
 

@@ -51,10 +51,11 @@ export default (state = initialState, action) => {
 export const fetchContractsList = () => async (dispatch) => {
   const contracts = await ContractsManagerDAO.getDAOContracts()
   let map = {}
-  contracts.map((contract: AbstractContractDAO) => {
-    map[contract.getContractName()] = new ContractModel({
-      name: contract.getContractName(),
-      address: contract.getInitAddress()
+  contracts.map((contractDAO: AbstractContractDAO) => {
+    map[contractDAO.getContractName()] = new ContractModel({
+      name: contractDAO.getContractName(),
+      address: contractDAO.getInitAddress(),
+      dao: contractDAO
     })
   })
 
@@ -70,25 +71,28 @@ export const removeSelected = () => (dispatch) => {
   dispatch({type: CONTRACTS_MANAGER_REMOVE_SELECTED})
 }
 
+export const validateAddress = async (contract: ContractModel) => {
+  const dao: AbstractContractDAO = contract.get('dao')
+  const address: string = contract.get('address')
+  const isSameContract = await dao.isSameContractCode(address)
+
+  if (!isSameContract) {
+    throw {address: 'Can\'t init ' + dao.getContractName() + ' at ' + address}
+  }
+}
+
 export const updateSelected = (selected: ContractModel, newAddress) => async (dispatch) => {
   const prevAddress = selected.get('address')
-  selected.set('address', newAddress)
-  dispatch({type: CONTRACTS_MANAGER_UPDATE_CONTRACT, contract: selected.fetching()})
+  selected = selected.set('address', newAddress).fetching()
+
+  dispatch({type: CONTRACTS_MANAGER_UPDATE_CONTRACT, contract: selected})
   dispatch(removeSelected())
 
-  try {
-    await ContractsManagerDAO.createDAOByContractName(selected.get('name'), newAddress, true)
-  } catch (e) {
-    console.log(e)
-    throw new Error(e)
-  }
   try {
     await ContractsManagerDAO.setContractAddress(prevAddress, selected.get('address'))
     dispatch({type: CONTRACTS_MANAGER_UPDATE_CONTRACT, contract: selected.notFetching()})
   } catch (e) {
-    console.log(e)
-    selected.set('address', prevAddress)
-    dispatch({type: CONTRACTS_MANAGER_UPDATE_CONTRACT, contract: selected.notFetching()})
+    dispatch({type: CONTRACTS_MANAGER_UPDATE_CONTRACT, contract: selected.set('address', prevAddress).notFetching()})
   }
 }
 

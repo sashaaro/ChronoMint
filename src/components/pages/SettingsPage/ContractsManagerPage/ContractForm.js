@@ -4,17 +4,21 @@ import { Field, reduxForm } from 'redux-form/immutable'
 import { TextField } from 'redux-form-material-ui'
 import { validate } from '../../../../models/ContractModel'
 import { Translate } from 'react-redux-i18n'
+import { validateAddress } from '../../../../redux/settings/contractsManager/contracts'
+
+export const FORM_SETTINGS_CONTRACT = 'SettingsContractForm'
 
 const mapStateToProps = (state) => ({
   initialValues: state.get('settingsContracts').selected.set('address', '')
 })
 
-@connect(mapStateToProps, null, null, {withRef: true})
-@reduxForm({form: 'SettingsContractForm', validate, asyncValidate: () => {
-  // todo
-}})
+@connect(mapStateToProps)
+@reduxForm({form: FORM_SETTINGS_CONTRACT, validate, asyncValidate: validateAddress})
 class ContractForm extends Component {
   render () {
+    const {submitting} = this.props
+
+    console.log(this.props)
     return (
       <form onSubmit={this.props.handleSubmit}>
         <Field component={TextField}
