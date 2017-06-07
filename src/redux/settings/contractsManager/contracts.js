@@ -6,7 +6,6 @@ import ContractModel from '../../../models/ContractModel'
 export const CONTRACTS_MANAGER_FETCH_LIST = 'settings/CONTRACTS_MANAGER_FETCH_LIST'
 export const CONTRACTS_MANAGER_UPDATE_CONTRACT = 'settings/CONTRACTS_MANAGER_UPDATE_CONTRACT'
 export const CONTRACTS_MANAGER_SET_SELECTED = 'settings/CONTRACTS_MANAGER_SET_SELECTED'
-export const CONTRACTS_MANAGER_UPDATE_SELECTED = 'settings/CONTRACTS_MANAGER_UPDATE_SELECTED'
 export const CONTRACTS_MANAGER_REMOVE_SELECTED = 'settings/CONTRACTS_MANAGER_REMOVE_SELECTED'
 
 const initialState = {
@@ -29,11 +28,6 @@ export default (state = initialState, action) => {
         list: state.list.set(action.contract.get('name'), action.contract),
       }
     case CONTRACTS_MANAGER_SET_SELECTED:
-      return {
-        ...state,
-        selected: action.selected,
-      }
-    case CONTRACTS_MANAGER_UPDATE_SELECTED:
       return {
         ...state,
         selected: action.selected,
